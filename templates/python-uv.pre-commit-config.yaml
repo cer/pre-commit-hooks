@@ -1,0 +1,44 @@
+# A Python project run with uv: the base hooks, ruff, pyright, CodeScene and the tests.
+# Replace src/ with the package directory pyright should check.
+# Copy to .pre-commit-config.yaml, then run:
+#   pre-commit install --hook-type pre-commit --hook-type commit-msg
+repos:
+  - repo: https://github.com/cer/pre-commit-hooks
+    rev: v1.0.0
+    hooks:
+      - id: gitleaks-staged
+      - id: gitleaks-commit-message
+      - id: block-claude-coauthor
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.11.0.1
+    hooks:
+      - id: shellcheck
+        stages: [pre-commit]
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: Run ruff check --fix
+        entry: uv run --with ruff ruff check --fix
+        language: system
+        types: [python]
+        pass_filenames: false
+        stages: [pre-commit]
+      - id: pyright
+        name: Run pyright --level error
+        entry: uvx pyright --level error src/
+        language: system
+        types: [python]
+        pass_filenames: false
+        stages: [pre-commit]
+      - id: run-codescene
+        name: Run CodeScene
+        entry: codescene-precommit.sh
+        language: script
+        pass_filenames: false
+        stages: [pre-commit]
+      - id: pytest
+        name: Run uv run pytest
+        entry: uv run pytest
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]

@@ -1,0 +1,33 @@
+# This repository runs its own hooks from the working tree, and its tests.
+repos:
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.11.0.1
+    hooks:
+      - id: shellcheck
+        args: [-x]
+        stages: [pre-commit]
+  - repo: local
+    hooks:
+      - id: gitleaks-staged
+        name: Detect secrets and local paths in the staged changes
+        entry: bin/gitleaks-staged.sh
+        language: script
+        pass_filenames: false
+        stages: [pre-commit]
+      - id: test-hooks
+        name: Run test/test-hooks.sh
+        entry: test/test-hooks.sh
+        language: script
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+      - id: gitleaks-commit-message
+        name: Detect secrets and local paths in the commit message
+        entry: bin/gitleaks-commit-message.sh
+        language: script
+        stages: [commit-msg]
+      - id: block-claude-coauthor
+        name: Block Claude Co-Authored-By in commit messages
+        entry: bin/block-claude-coauthor.sh
+        language: script
+        stages: [commit-msg]

@@ -1,0 +1,55 @@
+title = "The gitleaks configuration the shared hooks scan with"
+
+# gitleaks has no top-level `extends` key: `extends = "default"` was ignored,
+# so only the custom rules below ran. This table is what loads the default
+# secret rules, and their allowlist, which exempts this file.
+[extend]
+useDefault = true
+
+# -----------------------------
+# Custom rule: Local user paths
+# -----------------------------
+
+[[rules]]
+id = "local-unix-home-path"
+description = "Local Unix or macOS home directory path"
+regex = '''/(?:Users|home)/[A-Za-z0-9._-]+(?:/|$)'''
+tags = ["sensitive", "local-path"]
+severity = "high"
+
+[rules.allowlist]
+description = "Exclude common placeholder usernames in docs/examples"
+regexes = [
+  '''/(Users|home)/(user|username|name)(/|$)'''
+]
+
+# --------------------------------------------------
+# Custom rule: Local user paths written with a tilde
+# --------------------------------------------------
+
+[[rules]]
+id = "local-tilde-home-path"
+description = "Local home directory path written with a tilde, e.g. ~/src/some-project"
+regex = '''~/[A-Za-z0-9_-][A-Za-z0-9._-]*(?:/|$)'''
+tags = ["sensitive", "local-path"]
+severity = "high"
+
+[rules.allowlist]
+description = "Exclude placeholders, and dot-directories, which name a convention rather than one machine's layout"
+regexes = [
+  '''~/(user|username|name|path|project)(/|$)'''
+]
+
+# ------------------------------------------------------------------------
+# Custom rule: files under .hitl
+#
+# idea-to-code records sessions and issues under .hitl, and
+# `i2code tracking setup` ignores the directory with **/.hitl. A .hitl file
+# reaching a commit means that ignore is missing or was bypassed.
+# ------------------------------------------------------------------------
+
+[[rules]]
+id = "hitl-tracking-file"
+description = "A file under .hitl, where idea-to-code records sessions and issues: it is never committed"
+path = '''(?:^|/)\.hitl/'''
+tags = ["hitl"]

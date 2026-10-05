@@ -1,0 +1,19 @@
+- id: gitleaks-staged
+  name: Detect secrets and local paths in the staged changes
+  description: Runs gitleaks on the staged changes with this repository's gitleaks.toml, and again with the project's own .gitleaks.toml when it has one.
+  entry: bin/gitleaks-staged.sh
+  language: script
+  pass_filenames: false
+  stages: [pre-commit]
+- id: gitleaks-commit-message
+  name: Detect secrets and local paths in the commit message
+  description: Runs gitleaks on the commit message with this repository's gitleaks.toml, and again with the project's own .gitleaks.toml when it has one.
+  entry: bin/gitleaks-commit-message.sh
+  language: script
+  stages: [commit-msg]
+- id: block-claude-coauthor
+  name: Block Claude Co-Authored-By in commit messages
+  description: Refuses a commit message that contains the Anthropic co-author address.
+  entry: bin/block-claude-coauthor.sh
+  language: script
+  stages: [commit-msg]

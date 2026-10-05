@@ -1,0 +1,36 @@
+# A TypeScript project built with npm: the base hooks, CodeScene, the linter and the tests.
+# It expects package.json to define "lint" and "test" scripts.
+# Copy to .pre-commit-config.yaml, then run:
+#   pre-commit install --hook-type pre-commit --hook-type commit-msg
+repos:
+  - repo: https://github.com/cer/pre-commit-hooks
+    rev: v1.0.0
+    hooks:
+      - id: gitleaks-staged
+      - id: gitleaks-commit-message
+      - id: block-claude-coauthor
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.11.0.1
+    hooks:
+      - id: shellcheck
+        stages: [pre-commit]
+  - repo: local
+    hooks:
+      - id: run-codescene
+        name: Run CodeScene
+        entry: codescene-precommit.sh
+        language: script
+        pass_filenames: false
+        stages: [pre-commit]
+      - id: npm-lint
+        name: Run npm run lint
+        entry: npm run lint
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+      - id: npm-test
+        name: Run npm test
+        entry: npm test
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
