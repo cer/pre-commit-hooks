@@ -4,16 +4,12 @@
 #   pre-commit install --hook-type pre-commit --hook-type commit-msg
 repos:
   - repo: https://github.com/cer/pre-commit-hooks
-    rev: v1.0.0
+    rev: v1.1.0
     hooks:
       - id: gitleaks-staged
       - id: gitleaks-commit-message
       - id: block-claude-coauthor
-  - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.11.0.1
-    hooks:
       - id: shellcheck
-        stages: [pre-commit]
   - repo: local
     hooks:
       - id: ruff-check

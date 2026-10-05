@@ -1,11 +1,11 @@
 #!/bin/bash
 #
-# Tests the hooks: each script called directly, then all three through pre-commit in a
+# Tests the hooks: each script called directly, then all four through pre-commit in a
 # scratch project that uses a copy of this checkout as its hooks repository.
 #
 #   test/test-hooks.sh
 #
-# Exits 1 when any check fails. Needs gitleaks and pre-commit.
+# Exits 1 when any check fails. Needs gitleaks, shellcheck and pre-commit.
 
 set -u
 
@@ -118,6 +118,21 @@ test_coauthor_script() {
         "$HOOKS/bin/block-claude-coauthor.sh" "$(message_file "$COAUTHOR")"
 }
 
+shell_file() {
+    local file="$SCRATCH/script-$RANDOM.sh"
+    printf '#!/bin/bash\n%s\n' "$1" > "$file"
+    echo "$file"
+}
+
+test_shellcheck_script() {
+    # shellcheck disable=SC2016
+    check accepted "shellcheck script accepts a clean script" \
+        "$HOOKS/bin/shellcheck.sh" "$(shell_file 'echo "$HOME"')"
+    # shellcheck disable=SC2016
+    check refused "shellcheck script refuses a script with a warning" \
+        "$HOOKS/bin/shellcheck.sh" "$(shell_file 'echo $HOME')"
+}
+
 # pre-commit clones a hooks repository at a commit, so the working tree is committed
 # into a scratch copy for it to clone.
 hooks_repository_from_working_tree() {
@@ -141,6 +156,7 @@ repos:
       - id: gitleaks-staged
       - id: gitleaks-commit-message
       - id: block-claude-coauthor
+      - id: shellcheck
 YAML
     in_project "$project" pre-commit install --hook-type pre-commit --hook-type commit-msg > /dev/null
     git -C "$project" add -A
@@ -159,11 +175,24 @@ test_through_pre_commit() {
     stage_file "$project" "path $HOME_PATH"
     check refused "through pre-commit: a home directory path in a staged file is refused" \
         git -C "$project" commit -m "A clean message"
+    git -C "$project" reset -q --hard
+    # shellcheck disable=SC2016
+    cp "$(shell_file 'echo $HOME')" "$project/warning.sh"
+    git -C "$project" add -A
+    check refused "through pre-commit: a shell script with a warning is refused" \
+        git -C "$project" commit -m "A clean message"
+    git -C "$project" reset -q --hard
+    # shellcheck disable=SC2016
+    cp "$(shell_file 'echo "$HOME"')" "$project/clean.sh"
+    git -C "$project" add -A
+    check accepted "through pre-commit: a clean shell script is accepted" \
+        git -C "$project" commit -m "A clean message"
 }
 
 test_commit_message_script
 test_staged_script
 test_coauthor_script
+test_shellcheck_script
 test_through_pre_commit
 
 if [ "$FAILURES" -gt 0 ]; then

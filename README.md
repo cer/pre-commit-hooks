@@ -13,13 +13,21 @@ configuration of its own.
 | `gitleaks-staged` | `pre-commit` | Runs gitleaks on the staged changes |
 | `gitleaks-commit-message` | `commit-msg` | Runs gitleaks on the commit message |
 | `block-claude-coauthor` | `commit-msg` | Refuses a message containing the Anthropic co-author address |
+| `shellcheck` | `pre-commit` | Runs shellcheck on each staged shell script |
 
 Both gitleaks hooks scan with [`gitleaks.toml`](gitleaks.toml) from this repository. It loads
 gitleaks' default secret rules and adds rules for a home directory path, written in full or with a
 tilde, and for a file under `.hitl`.
 
-The gitleaks hooks run the `gitleaks` program installed on the machine. See
-[installing gitleaks](https://github.com/gitleaks/gitleaks#installing).
+The hooks run programs installed on the machine, and download none:
+
+- the gitleaks hooks run `gitleaks`: see
+  [installing gitleaks](https://github.com/gitleaks/gitleaks#installing)
+- the shellcheck hook runs `shellcheck`: see
+  [installing shellcheck](https://github.com/koalaman/shellcheck#installing)
+
+So the version of each is the one the machine has. A project passes shellcheck options with
+`args`, for example `args: [-x]` to follow sourced files.
 
 ## Using the hooks in a project
 
@@ -27,7 +35,7 @@ Copy the template that fits the project to `.pre-commit-config.yaml`:
 
 | Template | For |
 |---|---|
-| [`templates/base.pre-commit-config.yaml`](templates/base.pre-commit-config.yaml) | Any project: the three hooks and shellcheck |
+| [`templates/base.pre-commit-config.yaml`](templates/base.pre-commit-config.yaml) | Any project: the four hooks |
 | [`templates/kotlin-gradle.pre-commit-config.yaml`](templates/kotlin-gradle.pre-commit-config.yaml) | Kotlin or Java built with Gradle |
 | [`templates/python-uv.pre-commit-config.yaml`](templates/python-uv.pre-commit-config.yaml) | Python run with uv |
 | [`templates/typescript-npm.pre-commit-config.yaml`](templates/typescript-npm.pre-commit-config.yaml) | TypeScript built with npm |
@@ -43,11 +51,12 @@ The part every template shares is:
 ```yaml
 repos:
   - repo: https://github.com/cer/pre-commit-hooks
-    rev: v1.0.0
+    rev: v1.1.0
     hooks:
       - id: gitleaks-staged
       - id: gitleaks-commit-message
       - id: block-claude-coauthor
+      - id: shellcheck
 ```
 
 ## A project's own gitleaks rules
@@ -75,5 +84,6 @@ A project gets a change only when its `rev` is updated.
 test/test-hooks.sh
 ```
 
-It calls each hook script directly, then runs all three through pre-commit in a scratch project
-that uses a copy of this checkout as its hooks repository. It needs gitleaks and pre-commit.
+It calls each hook script directly, then runs all four through pre-commit in a scratch project
+that uses a copy of this checkout as its hooks repository. It needs gitleaks, shellcheck and
+pre-commit.

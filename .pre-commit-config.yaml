@@ -1,13 +1,14 @@
 # This repository runs its own hooks from the working tree, and its tests.
 repos:
-  - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.11.0.1
-    hooks:
-      - id: shellcheck
-        args: [-x]
-        stages: [pre-commit]
   - repo: local
     hooks:
+      - id: shellcheck
+        name: Run shellcheck on shell scripts
+        entry: bin/shellcheck.sh
+        args: [-x]
+        language: script
+        types: [shell]
+        stages: [pre-commit]
       - id: gitleaks-staged
         name: Detect secrets and local paths in the staged changes
         entry: bin/gitleaks-staged.sh

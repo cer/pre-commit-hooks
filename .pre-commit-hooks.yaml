@@ -17,3 +17,10 @@
   entry: bin/block-claude-coauthor.sh
   language: script
   stages: [commit-msg]
+- id: shellcheck
+  name: Run shellcheck on shell scripts
+  description: Runs the shellcheck installed on the machine on each staged shell script.
+  entry: bin/shellcheck.sh
+  language: script
+  types: [shell]
+  stages: [pre-commit]
